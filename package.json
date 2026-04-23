@@ -1,0 +1,7 @@
+{
+  "name": "fedapay-vercel",
+  "version": "1.0.0",
+  "dependencies": {
+    "fedapay": "^1.0.0"
+  }
+}
