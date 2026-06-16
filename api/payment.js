@@ -5,14 +5,26 @@ FedaPay.setEnvironment('live');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', 'https://stevenckohr-pixel.github.io');
-  res.setHeader('Access-Control-Allow-Methods', 'POST');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  
+
   if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-  
-  const { amount, description, customer_email, customer_firstname, customer_lastname, callback_url, cancel_url } = req.body;
-  
+
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const {
+    amount,
+    description,
+    customer_email,
+    customer_firstname,
+    customer_lastname,
+    callback_url,
+    cancel_url,
+    metadata
+  } = req.body;
+
   try {
     const transaction = await Transaction.create({
       description,
@@ -24,10 +36,18 @@ module.exports = async (req, res) => {
         email: customer_email,
         firstname: customer_firstname,
         lastname: customer_lastname
-      }
+      },
+      metadata: metadata || {}
     });
-    res.json({ payment_url: transaction.payment_url });
+
+    res.json({
+      success: true,
+      transaction_id: transaction.id,
+      payment_url: transaction.payment_url
+    });
+
   } catch (err) {
+    console.error("Erreur FedaPay:", err);
     res.status(500).json({ error: err.message });
   }
 };
